@@ -1,0 +1,21 @@
+Region_ID,Region_Name,City,State,Zone,Latitude,Longitude
+1,North Metro Cluster,Delhi,Delhi,North,28.6139,77.2090
+2,Financial West Cluster,Mumbai,Maharashtra,West,19.0760,72.8777
+3,South Tech Cluster,Bengaluru,Karnataka,South,12.9716,77.5946
+4,South Coastal Cluster,Chennai,Tamil Nadu,South,13.0827,80.2707
+5,East Metro Cluster,Kolkata,West Bengal,East,22.5726,88.3639
+6,Central Growth Cluster,Hyderabad,Telangana,South,17.3850,78.4867
+7,Western Education Cluster,Pune,Maharashtra,West,18.5204,73.8567
+8,Western Heritage Cluster,Ahmedabad,Gujarat,West,23.0225,72.5714
+9,North Health Access Cluster,Lucknow,Uttar Pradesh,North,26.8467,80.9462
+10,Central India Cluster,Bhopal,Madhya Pradesh,Central,23.2599,77.4126
+11,Rajasthan Urban Cluster,Jaipur,Rajasthan,North,26.9124,75.7873
+12,Coastal Port Cluster,Kochi,Kerala,South,9.9312,76.2673
+13,East-Central Industrial Cluster,Bhubaneswar,Odisha,East,20.2961,85.8245
+14,Northwest Emerging Cluster,Chandigarh,Chandigarh,North,30.7333,76.7794
+15,Bihar Development Cluster,Patna,Bihar,East,25.5941,85.1376
+16,Northeast Gateway Cluster,Guwahati,Assam,Northeast,26.1445,91.7362
+17,Central-East Cluster,Ranchi,Jharkhand,East,23.3441,85.3096
+18,South Interior Cluster,Coimbatore,Tamil Nadu,South,11.0168,76.9558
+19,North Pilgrim Cluster,Varanasi,Uttar Pradesh,North,25.3176,82.9739
+20,Western Coastal Cluster,Goa,Goa,West,15.2993,74.1240

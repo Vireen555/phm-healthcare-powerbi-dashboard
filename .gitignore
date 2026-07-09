@@ -1,0 +1,28 @@
+# Power BI temporary / cache files
+*.pbix.tmp
+~$*
+*.pbi_temp
+.pbi/
+TempStorage/
+
+# Power BI local caches
+*.abf
+*.frm
+
+# OS
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+._*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Office lock files
+~$*.xlsx
+~$*.docx
