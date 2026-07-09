@@ -7,7 +7,7 @@
 
 A five-page Power BI report that takes a **population health management (PHM)** view of community health across 20 Indian city clusters — moving from *"how healthy is this population?"* down to *"which 500 patients should a care team call on Monday morning?"*
 
-The report links clinical risk, chronic disease control, social determinants of health (SDoH), and public health surveillance into a single star-schema model, then layers **what-if parameters** on top so a planner can simulate the impact of an intervention before funding it.
+The report links clinical risk, chronic disease control, social determinants of health (SDoH), and public health surveillance into a single snowflake model hubbed on community demographics, then layers **what-if parameters** on top so a planner can simulate the impact of an intervention before funding it.
 
 ![Dashboard 1 — Community Health](assets/dashboard-1.png)
 
@@ -68,17 +68,26 @@ Seven CSV tables at two grains — **patient** (5,000 rows) and **region** (20 r
 
 ## Data model
 
-A textbook **star schema**. `Region_Lookup` is the single geographic dimension; `Patient_ID` fans the three patient-grain tables into a shared 1:1 spine.
+A **snowflake** model with `Community_Demographics` as the central hub. Every region-grain table joins to it on `Region_ID`, and the two patient-grain tables reach it indirectly through `Risk_Stratification` on `Patient_ID`.
 
 ```mermaid
 erDiagram
-    Region_Lookup ||--o{ Community_Demographics : "Region_ID"
-    Region_Lookup ||--o{ Preventive_Care        : "Region_ID"
-    Region_Lookup ||--o{ Surveillance           : "Region_ID"
-    Region_Lookup ||--o{ Risk_Stratification    : "Region_ID"
-    Risk_Stratification ||--|| Chronic_Disease  : "Patient_ID"
-    Risk_Stratification ||--|| SDoH             : "Patient_ID"
+    Community_Demographics ||--|| Region_Lookup    : "Region_ID (1:1)"
+    Community_Demographics ||--|| Preventive_Care  : "Region_ID (1:1)"
+    Community_Demographics ||--|| Surveillance     : "Region_ID (1:1)"
+    Community_Demographics ||--o{ Risk_Stratification : "Region_ID (1:many)"
+    Risk_Stratification    ||--|| Chronic_Disease  : "Patient_ID (1:1)"
+    Risk_Stratification    ||--|| SDoH             : "Patient_ID (1:1)"
 
+    Community_Demographics {
+        int Region_ID PK
+        int Population_Size
+        int Median_Income
+        float Unemployment_Rate
+        string Rural_Urban
+        int Pollution_Index
+        float Food_Access_Score
+    }
     Region_Lookup {
         int Region_ID PK
         string Region_Name
@@ -111,7 +120,11 @@ erDiagram
     }
 ```
 
-`Region_Lookup` carries latitude/longitude, which is what lets a **patient-grain** risk score render on a **region-grain** map without breaking the filter direction. Slicers on `State`, `Rural_Urban`, `Risk_Category`, `Smoking_Status`, and `Remote_Monitoring_Flag` propagate down from the dimension across every page.
+**Why the relationships are one-to-one.** `Region_ID` is unique in all four region tables — 20 rows, 20 distinct IDs each — so Power BI resolves `Community_Demographics` against `Region_Lookup`, `Preventive_Care`, and `Surveillance` as **1:1**. `Risk_Stratification` is the only table on a many side: 5,000 patients across the same 20 regions. `Chronic_Disease` and `SDoH` carry no `Region_ID` at all, so `Patient_ID` is their only path into the model.
+
+**Why cross-filtering is bidirectional on several edges.** Because the hub is the demographics table rather than `Region_Lookup`, geography is a *satellite* of the hub instead of the root of a star. A slicer on `Region_Lookup[State]` therefore has to travel **up into `Community_Demographics` and back down** to reach `Risk_Stratification`. Single-direction filters would not propagate that way across a 1:1 join, which is why the model enables bidirectional cross-filtering on those relationships. The trade-off is real: it makes the cross-page slicers on `State`, `Rural_Urban`, `Risk_Category`, `Smoking_Status`, and `Remote_Monitoring_Flag` work everywhere, at the cost of ambiguity risk that a conventional star (with `Region_Lookup` promoted to the root) would avoid.
+
+`Region_Lookup` supplies the latitude/longitude that let **patient-grain** risk scores render on the **region-grain** maps on Dashboards 1 and 5.
 
 Calculated columns added in the model (not present in the raw CSVs): `Risk_Category`, `Chronic_Burden`, `Community_Risk`, `Chronic_Disease_Prevalence`, `Food_Security_Label`, `Transport_Access_Label`, plus binned columns `Risk_Score (bins)` and `HbA1c (bins)`.
 
@@ -324,8 +337,8 @@ phm-healthcare-powerbi-dashboard/
 │   ├── Risk_Stratification.csv  # 5,000 patients — risk scores, utilisation
 │   ├── Chronic_Disease.csv      # 5,000 patients — HbA1c, adherence, complications
 │   ├── SDoH.csv                 # 5,000 patients — social determinants
-│   ├── Region_Lookup.csv        # 20 regions — the geographic dimension
-│   ├── Community_Demographics.csv
+│   ├── Community_Demographics.csv  # 20 regions — the model's central hub
+│   ├── Region_Lookup.csv        # 20 regions — geography, lat/long for maps
 │   ├── Preventive_Care.csv
 │   └── Surveillance.csv
 ├── assets/
@@ -338,7 +351,7 @@ phm-healthcare-powerbi-dashboard/
 
 ## Skills demonstrated
 
-**Data modelling** — star schema across two grains (patient and region); a single conformed geography dimension; deliberate handling of filter propagation from a region dimension into patient-grain facts.
+**Data modelling** — a snowflake model across two grains (patient and region), hubbed on `Community_Demographics`; 1:1 joins on a `Region_ID` that is unique in every region table; bidirectional cross-filtering used deliberately so geography slicers propagate from a satellite table through the hub into patient-grain facts.
 
 **DAX** — `CALCULATE` for cohort-scoped KPIs, `DIVIDE` for safe ratios, `RANKX` for the top-decile roster, `GENERATESERIES` for disconnected what-if parameter tables, and binning columns for distribution analysis.
 
